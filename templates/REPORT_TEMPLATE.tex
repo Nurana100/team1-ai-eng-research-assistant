@@ -1,0 +1,518 @@
+% =====================================================================
+% AI Academy -- National AI Center
+% Software Engineering Final Project -- Team Report Template
+%
+% HOW TO USE
+% ----------
+%   1. Edit the CONFIGURATION block below (team name, topic, members).
+%   2. Replace every [TODO: ...] with your content. TODOs render in red,
+%      so anything you forgot will be visually obvious in the PDF.
+%   3. Three kinds of cues throughout:
+%        - REQUIRED DELIVERABLE box (blue): exactly what we expect.
+%        - PROBING QUESTIONS box (amber): NOT a checklist; these are
+%          prompts that should shape how you write the section. A strong
+%          response engages with at least 2 of them; a weak response
+%          ignores them all.
+%        - "Your response:" placeholders: replace with your text/diagram.
+%   4. Target length: 8-10 pages including figures, excluding bibliography.
+%   5. Compile with pdfLaTeX. Overleaf works out of the box.
+% =====================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% ===== EARLY MACROS (must come before configuration) =================
+% (Full styling lower down; we just need \TODO and \ph available
+% before the configuration block uses them.)
+\usepackage[dvipsnames]{xcolor}
+\definecolor{accent2}{HTML}{8B0000}
+\definecolor{ph}{HTML}{6B7280}
+\newcommand{\TODO}[1]{\textcolor{accent2}{\textbf{[TODO: #1]}}}
+\newcommand{\phh}[1]{\textcolor{ph}{\textit{#1}}}
+
+% ===== CONFIGURATION (edit these) ====================================
+\newcommand{\teamname}{\TODO{Your team name}}
+\newcommand{\topicchoice}{\TODO{Topic 1 / 2 / 3 / 4 - title}}
+\newcommand{\member}[2]{\textbf{#1} (#2)}  % name, GitHub handle
+\newcommand{\reportdate}{\TODO{Date submitted}}
+\newcommand{\repolink}{\TODO{GitHub repo URL}}
+
+% ===== course meta (rarely changes) ==================================
+\newcommand{\coursecode}{AI-ENG-110}
+\newcommand{\coursename}{Software Engineering}
+\newcommand{\institution}{AI Academy, National AI Center}
+\newcommand{\semester}{Spring 2026}
+
+% ===== PACKAGES ======================================================
+\usepackage[margin=2.2cm,headheight=15pt]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[final,protrusion=true,expansion=false]{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage[parfill]{parskip}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[hidelinks]{hyperref}
+
+\emergencystretch=3em
+\hbadness=10000
+\hfuzz=2pt
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=NavyBlue,
+  urlcolor=NavyBlue,
+  citecolor=NavyBlue,
+  pdftitle={\coursecode\ Final Project Report},
+  pdfauthor={\teamname}
+}
+
+% ===== STYLING =======================================================
+\definecolor{accent}{HTML}{0B3D91}
+\definecolor{soft}{HTML}{F2F4F8}
+\definecolor{deliver}{HTML}{E8F0FE}
+\definecolor{deliverframe}{HTML}{1A56DB}
+\definecolor{probe}{HTML}{FFF8E1}
+\definecolor{probeframe}{HTML}{B45309}
+
+\titleformat{\section}
+  {\Large\bfseries\color{accent}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{accent}}{\thesubsection}{0.5em}{}
+
+\newcommand{\ans}[1]{\rule[-2pt]{#1}{0.5pt}}
+\let\ph\phh  % alias the early \phh as \ph for consistency with the body
+
+% Deliverable callout (light blue)
+\newtcolorbox{deliverbox}{
+  colback=deliver, colframe=deliverframe, boxrule=0.5pt,
+  arc=2pt, left=8pt, right=8pt, top=4pt, bottom=4pt
+}
+% Probing-question callout (light amber)
+\newtcolorbox{probebox}{
+  colback=probe, colframe=probeframe, boxrule=0.5pt,
+  arc=2pt, left=8pt, right=8pt, top=4pt, bottom=4pt
+}
+
+\newcommand{\answerbox}[1]{%
+  \par\noindent
+  \fcolorbox{black!30}{soft}{%
+    \parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
+      \vspace{0pt}\centering
+      \ph{[Your response here -- replace this placeholder.]}
+      \vspace{#1}
+    }%
+  }\par
+}
+
+\newcommand{\figureplaceholder}[1]{%
+  \par\noindent
+  \begin{center}
+  \fcolorbox{black!30}{soft}{%
+    \parbox{0.75\linewidth}{%
+      \vspace{0pt}\centering
+      \ph{[Replace this box with \texttt{\textbackslash includegraphics\{...\}} or a tikzpicture.]}
+      \vspace{#1}
+    }%
+  }
+  \end{center}
+}
+
+\definecolor{codegreen}{rgb}{0,0.55,0}
+\definecolor{codegray}{rgb}{0.4,0.4,0.4}
+\definecolor{codepurple}{rgb}{0.55,0,0.78}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
+
+\lstdefinestyle{python}{
+  language=Python,
+  backgroundcolor=\color{backcolour},
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{accent},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,
+  breaklines=true,
+  keepspaces=true,
+  numbers=left,
+  numbersep=6pt,
+  tabsize=2,
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{black!30},
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{\coursecode\ -- Final Report -- \teamname}}
+\fancyhead[R]{\small\textit{\semester}}
+\fancyfoot[L]{\small\textit{\institution}}
+\fancyfoot[R]{\small Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% =====================================================================
+\begin{document}
+
+\begin{center}
+{\small \textsc{\institution} \\[0.2em] \textsc{\coursecode\ -- \coursename\ -- \semester}}\\[1.2em]
+{\Large\bfseries\color{accent} Final Project Report}\\[0.3em]
+{\LARGE\bfseries \topicchoice}\\[0.6em]
+\rule{0.85\textwidth}{0.6pt}
+\end{center}
+
+\vspace{0.6em}
+\begin{tabularx}{\textwidth}{@{}lXlX@{}}
+\textbf{Team:} & \teamname & \textbf{Date:} & \reportdate \\
+\textbf{Repo:} & \repolink & \textbf{Tag:} & \texttt{v1.0-final} \\
+\textbf{Members:} & \multicolumn{3}{X@{}}{%
+  \member{\ph{Member A name}}{\ph{@github-A}},\quad
+  \member{\ph{Member B name}}{\ph{@github-B}},\quad
+  \member{\ph{Member C name}}{\ph{@github-C}}
+}\\
+\end{tabularx}
+\vspace{0.4em}\hrule\vspace{0.6em}
+
+% ===== EXECUTIVE SUMMARY =============================================
+\section*{Executive Summary}
+\addcontentsline{toc}{section}{Executive Summary}
+
+\begin{deliverbox}
+\textbf{Required.} Exactly one paragraph (5--7 sentences). What you built, the headline concurrency speedup you measured, your headline robustness story, and the single most surprising thing the team learned. \emph{This is the first thing the grader reads. If you cannot write it clearly, you do not yet understand your own project.}
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Your paragraph should answer:} What problem did the system solve? What is the one number that proves the concurrency design works? What is the one failure mode you handled well? What would you change if you started over?
+\end{probebox}
+
+\answerbox{3cm}
+
+% ===== TABLE OF CONTENTS =============================================
+\tableofcontents
+\vspace{0.6em}\hrule\vspace{0.4em}
+
+% =====================================================================
+\section{Project Overview}
+
+\subsection{Problem framing \& scope}
+
+\begin{deliverbox}
+\textbf{Required.} 2--3 paragraphs. State the topic problem in your own words. List the inputs, outputs, and any user-facing entry points (CLI commands, HTTP endpoints). State which provider stack you used (LLM, embedding, USDA, web search).
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Beyond the obvious:} which parts of the TOPIC.md spec did your team explicitly decide \emph{not} to do, and why? Where did you tighten the spec? Where did you loosen it?
+\end{probebox}
+
+\answerbox{4cm}
+
+\subsection{Provider choice and the AI module contract}
+
+\begin{deliverbox}
+\textbf{Required.} Name the LLM, embedding, and any auxiliary provider you used, and the model identifiers (\texttt{claude-sonnet-4-6}, \texttt{text-embedding-3-small}, etc.). State what \texttt{ai/} functions you call. \emph{Confirm in one sentence that you did not modify the public interface of the provided \texttt{ai/} package.}
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Push deeper:} how does your code defend against a malformed model response? What happens when the provider returns valid JSON that is semantically wrong (wrong topic enum, negative grams, etc.)?
+\end{probebox}
+
+\answerbox{3cm}
+
+% =====================================================================
+\section{Architecture}\label{sec:arch}
+
+\subsection{Module map}
+
+\begin{deliverbox}
+\textbf{Required.} An architecture diagram (boxes-and-arrows or sequence diagram) showing the main modules and their dependencies. Identify on the diagram: the boundary of the provided \texttt{ai/} package, your service layer that wraps it, your core business logic, your concurrency layer, your storage layer, and your CLI/HTTP entry points.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Interpret your own diagram:} which arrows cross the AI-module boundary? Which arrows cross the storage boundary? If you had to swap providers (Anthropic $\to$ OpenAI), how many files would change?
+\end{probebox}
+
+\figureplaceholder{6cm}
+
+\textbf{Module-by-module summary (1--2 sentences each):} \answerbox{4cm}
+
+\subsection{OOP design \& key abstractions}
+
+\begin{deliverbox}
+\textbf{Required.} Identify at least one example of inheritance or composition \emph{in your own code} (not the provided package's). Quote 5--10 lines of the relevant class or object design. Justify why this abstraction was the right tool; if you used an ABC, explain why.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Defensibility:} if a grader asked "why is this an abstract base class rather than a Protocol, a plain function with a callable parameter, or a configuration enum?" --- what is your answer? Are there places where you used composition where inheritance would have been wrong, or vice versa?
+\end{probebox}
+
+\textbf{Code listing:}
+\begin{lstlisting}[style=python]
+# Replace with your own ABC + concrete subclass example.
+class StorageBackend(ABC):
+    @abstractmethod
+    def save(self, item: Item) -> None: ...
+
+class SQLiteStorage(StorageBackend): ...
+\end{lstlisting}
+
+\textbf{Justification (2--3 sentences):} \answerbox{2cm}
+
+\subsection{Data flow across module boundaries}
+
+\begin{deliverbox}
+\textbf{Required.} List the dataclasses you defined for your own SE layer. Confirm in one sentence that no naked dictionaries cross module boundaries.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{The hardest call:} when did you reuse a dataclass from the provided \texttt{ai/} package vs.\ wrap it in a new one for your SE layer? What was the trigger for wrapping?
+\end{probebox}
+
+\answerbox{3cm}
+
+% =====================================================================
+\section{Concurrency \& Performance}\label{sec:concurrency}
+
+\subsection{Why this concurrency model}
+
+\begin{deliverbox}
+\textbf{Required.} State which concurrency primitive you used (\texttt{asyncio}, \texttt{ProcessPoolExecutor}, \texttt{ThreadPoolExecutor}) and why. Identify the bottleneck the parallel design targets. State the bound (e.g.\ \texttt{Semaphore(10)}) and how you picked it.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Justify against alternatives:} could you have used threads instead of asyncio? Why not? What is the smallest workload at which the concurrent design starts to win against sequential? What happens if you set the semaphore to 1 vs.\ 100?
+\end{probebox}
+
+\answerbox{4cm}
+
+\subsection{Sequential-vs-concurrent benchmark}
+
+\begin{deliverbox}
+\textbf{Required.} A table reporting wall-clock time for the same workload run sequentially vs.\ concurrently. State $N$ (number of requests), the machine, the python version, whether caches were cleared, and the command line. Reproduce the table also in your README.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Honest interpretation:} did you reach the theoretical $N\times$ speedup? If not, what was the new bottleneck (provider rate limit? GIL? network RTT? single-threaded DB writes?). What would push the curve further?
+\end{probebox}
+
+\begin{center}\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Workload} & $N$ & \textbf{Sequential (s)} & \textbf{Concurrent (s)} & \textbf{Speedup} \\
+\midrule
+\ph{e.g.\ register 20 items} & \ans{1.2cm} & \ans{1.5cm} & \ans{1.5cm} & \ans{1.2cm} \\
+\ph{e.g.\ analyze 16 meals} & \ans{1.2cm} & \ans{1.5cm} & \ans{1.5cm} & \ans{1.2cm} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Discussion (2--3 sentences):} \answerbox{2.5cm}
+
+\subsection{Rate limit \& politeness}
+
+\begin{deliverbox}
+\textbf{Required.} State the rate-limit strategy (sleep-on-429, token bucket, leaky bucket, request budget). Document the configured budget. State the highest burst your test suite produces.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Failure-mode test:} have you actually observed a 429 from the provider during development, or is this strategy untested in anger? What does the log look like when the budget is hit?
+\end{probebox}
+
+\answerbox{3cm}
+
+% =====================================================================
+\section{Robustness \& Error Handling}\label{sec:robustness}
+
+\subsection{Wrapping the AI module}
+
+\begin{deliverbox}
+\textbf{Required.} Describe your service-layer wrapper around \texttt{ai.*} calls: retries (which exceptions, how many attempts, backoff schedule), timeouts (per-call value), structured logging (what fields, at what level), input validation (what you check before calling, what you check on the response).
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Pressure-test:} what happens if the provider returns a 500? A 429? A connection reset mid-stream? A perfectly-formed JSON that contradicts the schema? Walk through one of these end-to-end.
+\end{probebox}
+
+\answerbox{4cm}
+
+\subsection{Failure-mode analysis (one concrete incident)}
+
+\begin{deliverbox}
+\textbf{Required.} Pick \emph{one} failure mode you actually exercised (provider 5xx, timeout, malformed response, network drop, disk full, corrupted image, USDA outage, etc.). Describe: (i) how you injected the failure, (ii) what the system did, (iii) what the user saw, (iv) what the logs showed.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Go beyond "graceful degradation worked":} what did you originally expect to happen vs.\ what actually happened? Did the test surface any design issue that you then fixed? Did the log give you enough to diagnose it without running the code again?
+\end{probebox}
+
+\answerbox{4.5cm}
+
+\subsection{Input validation}
+
+\begin{deliverbox}
+\textbf{Required.} For every entry point (CLI, HTTP, file, env), list the validation rules. State what error message the user gets when validation fails.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Adversarial:} could a malformed image kill your service? A 100\,MB JSON request? A query of 50,000 characters? A path that escapes your storage directory?
+\end{probebox}
+
+\answerbox{3cm}
+
+% =====================================================================
+\section{Storage \& Caching}\label{sec:storage}
+
+\subsection{Schema}
+
+\begin{deliverbox}
+\textbf{Required.} The SQLite schema for your domain tables. Include indices and foreign keys. State which fields are derived (cached) vs.\ source-of-truth.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Schema choices:} why did you store embedding bytes as a blob rather than serialized JSON, or vice versa? What happens to the DB if the embedding dimension changes (a different provider, a different model)?
+\end{probebox}
+
+\begin{lstlisting}[style=python,language=sql,numbers=none,basicstyle=\ttfamily\small]
+-- Paste your schema here, e.g.
+-- CREATE TABLE items (
+--   id INTEGER PRIMARY KEY AUTOINCREMENT,
+--   status TEXT NOT NULL CHECK(status IN ('lost', 'found')),
+--   user_text TEXT NOT NULL,
+--   vlm_description TEXT NOT NULL,
+--   embedding BLOB NOT NULL,
+--   created_at TEXT NOT NULL
+-- );
+\end{lstlisting}
+
+\subsection{Caching policy}
+
+\begin{deliverbox}
+\textbf{Required.} What do you cache, how long, where, and how is the cache invalidated. Report cache hit rate from a demo run (a single number is fine).
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Correctness vs.\ freshness:} which cached values can become stale (e.g.\ USDA nutrition for a renamed food, an LLM summary if the prompt changes)? How would you detect and evict them in production?
+\end{probebox}
+
+\answerbox{2.5cm}
+
+% =====================================================================
+\section{Testing}\label{sec:testing}
+
+\subsection{Strategy \& coverage}
+
+\begin{deliverbox}
+\textbf{Required.} Report the coverage number (\texttt{pytest --cov}). State how you mocked the AI module and the HTTP layer. Confirm the provided \texttt{tests/test\_ai\_smoke.py} still passes.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Quality vs.\ coverage:} which lines did you decide \emph{not} to cover, and why? Which mocks did you have to redesign mid-project because they were testing the wrong thing?
+\end{probebox}
+
+\begin{center}\small
+\begin{tabular}{lc}
+\toprule
+\textbf{Suite} & \textbf{Coverage} \\
+\midrule
+\texttt{src/} (your SE layer) & \ans{2cm}\,\% \\
+Provided \texttt{ai/} smoke tests & \ph{passing? yes / no} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Notable tests}
+
+\begin{deliverbox}
+\textbf{Required.} Highlight at least three tests: (i) one happy-path end-to-end test, (ii) one concurrency test (e.g.\ that \texttt{asyncio.gather} behaves correctly when one task raises), (iii) one error-path test that surfaces a real bug you would otherwise have missed.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{What didn't you test?} What is the test you wish you had time to write?
+\end{probebox}
+
+\answerbox{4cm}
+
+% =====================================================================
+\section{Deployment \& Reproducibility}\label{sec:deploy}
+
+\subsection{Docker image}
+
+\begin{deliverbox}
+\textbf{Required.} The exact \texttt{docker build} and \texttt{docker run} commands. The image size. The Python version baked in. Note whether you use a single-stage or multi-stage build.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Engineering trade-offs:} did you ship an Alpine, slim, or full base image, and why? How does your image size compare to a fresh \texttt{python:3.12-slim} ($\sim$120\,MB)?
+\end{probebox}
+
+\answerbox{2.5cm}
+
+\subsection{Configuration}
+
+\begin{deliverbox}
+\textbf{Required.} A short list of every environment variable the app reads, and what happens if each is missing.
+\end{deliverbox}
+
+\answerbox{3cm}
+
+% =====================================================================
+\section{Limitations \& Future Work}\label{sec:limits}
+
+\begin{deliverbox}
+\textbf{Required.} 3--5 bullet points. Honest list of where the system is brittle, what it would take to productionize, and what you would do differently with another week.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Be honest:} no project is perfect. What was the worst design decision you made? What did you not get to test under load? What is the scenario most likely to break the system on a busy day?
+\end{probebox}
+
+\answerbox{3.5cm}
+
+% =====================================================================
+\section{Tools \& Acknowledgements}\label{sec:tools}
+
+\begin{deliverbox}
+\textbf{Required.} Disclose substantial AI-assistant use. For each significant LLM-aided contribution: which module, which assistant (Claude/ChatGPT/Cursor/Copilot/etc.), and whether the team reviewed and adapted it.
+\end{deliverbox}
+
+\begin{probebox}
+\textit{Cultural note:} "AI helped with everything" is not a useful disclosure; "Cursor drafted the initial \texttt{retry\_policy.py}; we rewrote backoff logic after observing it hit the rate limit" is.
+\end{probebox}
+
+\answerbox{3.5cm}
+
+% =====================================================================
+\section*{References}
+\addcontentsline{toc}{section}{References}
+
+\begin{enumerate}[label={[\arabic*]},leftmargin=2.4em,itemsep=2pt]
+  \item \TODO{e.g.\ Anthropic API documentation, https://docs.anthropic.com/...}
+  \item \TODO{e.g.\ \texttt{tenacity} library: https://tenacity.readthedocs.io/}
+  \item \TODO{e.g.\ FastAPI tutorial / pydantic-settings docs}
+  \item \TODO{Any paper, blog post, or talk that shaped a design decision.}
+\end{enumerate}
+
+\appendix
+% =====================================================================
+\section{Appendix --- Reproducing the benchmark}
+\textbf{Exact commands to reproduce the §\ref{sec:concurrency} benchmark.} Anyone with the repo and a valid \texttt{.env} should be able to run the lines below and get numbers within 20\% of the ones in the table.
+
+\begin{lstlisting}[style=python,language=bash,numbers=none]
+# Replace with your exact reproducer:
+$ git clone <repo> && cd <repo>
+$ cp .env.example .env  # fill in keys
+$ docker build -t finalproj .
+$ docker run --env-file .env finalproj python scripts/bench.py --N 20
+\end{lstlisting}
+
+\vspace{1em}\hrule\vspace{0.6em}
+\noindent\small\textit{End of report --- thank you for reading.}
+
+\end{document}
