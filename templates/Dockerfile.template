@@ -1,0 +1,86 @@
+# =====================================================================
+# Dockerfile template for the AI Engineering Software Engineering Final
+#
+# This is a STARTING POINT. Adapt as needed for your project:
+#   - Change the entrypoint to match your CLI / HTTP server.
+#   - Adjust the exposed port for Topics 1 & 2 (HTTP API).
+#   - Pin python-slim to a specific minor version (e.g. 3.12.6-slim).
+#
+# Bonus: convert this to a multi-stage build for a smaller final image
+# (build stage compiles wheels, runtime stage only ships the venv).
+# =====================================================================
+
+# ---- Base image -----------------------------------------------------
+# python:3.12-slim is ~120 MB. python:3.12 is ~1 GB. Use slim unless
+# you have a specific reason. Pin the minor version so builds are
+# reproducible across rebuilds.
+FROM python:3.12-slim
+
+# ---- Build-time labels (optional but professional) ------------------
+LABEL org.opencontainers.image.title="AI Engineering Final Project"
+LABEL org.opencontainers.image.source="https://github.com/your-team/your-repo"
+LABEL org.opencontainers.image.version="1.0"
+
+# ---- Set sensible defaults for Python in a container ----------------
+# PYTHONDONTWRITEBYTECODE: don't write .pyc files in the container.
+# PYTHONUNBUFFERED:        stdout/stderr appear immediately (good for logs).
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# ---- System dependencies --------------------------------------------
+# Most projects don't need extras. Add only what you actually need.
+# Example: if your scraper uses libxml2 for selectolax, uncomment below.
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     libxml2 \
+#     && rm -rf /var/lib/apt/lists/*
+
+# ---- Working directory ----------------------------------------------
+WORKDIR /app
+
+# ---- Install Python dependencies BEFORE copying the code ------------
+# This lets Docker cache the dependency layer between builds when only
+# your source code changes. Big speed-up for iterative development.
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ---- Copy the rest of the project -----------------------------------
+# .dockerignore should exclude .git, .venv, __pycache__, *.pyc, .env,
+# local databases, logs, and other files not needed at runtime. Keep tests/
+# if you want to run smoke tests inside the image before submission.
+COPY . .
+
+# ---- Network port (Topics 1 & 2 — HTTP server) ----------------------
+# Uncomment if your project serves HTTP.
+# EXPOSE 8000
+
+# ---- Non-root user (security best practice) -------------------------
+# Containers should not run as root. Create an unprivileged user and
+# switch to them before ENTRYPOINT.
+RUN useradd --create-home --shell /bin/bash appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
+# ---- Healthcheck (optional but encouraged for Topics 1 & 2) ---------
+# HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+#     CMD curl -fsS http://localhost:8000/health || exit 1
+
+# ---- Default command ------------------------------------------------
+# Pick ONE of the following depending on your project shape.
+#
+# For a CLI-driven project (Topics 3, 4):
+CMD ["python", "-m", "yourpackage", "demo"]
+#
+# For an HTTP server (Topics 1, 2):
+# CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# =====================================================================
+# Build and run:
+#   docker build -t finalproj .
+#   docker run --env-file .env finalproj                 # CLI mode
+#   docker run --env-file .env -p 8000:8000 finalproj    # HTTP mode
+#
+# Verify before submission:
+#   docker run --env-file .env finalproj pytest tests/test_ai_smoke.py
+# =====================================================================
