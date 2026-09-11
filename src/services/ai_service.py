@@ -1,21 +1,76 @@
-import asyncio
+"""Service layer wrapping the provided ai/ module with retries, timeouts, and logging."""
 
-class ResearchService:
+from __future__ import annotations
 
-    def __init__(self):
-        pass
+import logging
+from typing import Sequence
 
-    async def fetch_all(self, question: str) -> dict:
-        # TODO: call ai.sources.fetch_wikipedia(question)
-        # TODO: call ai.sources.fetch_arxiv(question)
-        # TODO: call ai.sources.fetch_web(question)
-        return {
-            "wikipedia": [],
-            "arxiv": [],
-            "web": [],
-        }
+import httpx
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
-    async def answer(self, question: str) -> str:
-        sources = await self.fetch_all(question)
-        # TODO: call ai.synthesizer.synthesize(question, sources)
-        return f"Placeholder answer for: {question}"
+from ai import AnswerWithCitations, Source, fetch_arxiv, fetch_web, fetch_wikipedia, synthesize
+from ai.providers.base import LLMProvider, ProviderError
+
+logger = logging.getLogger(__name__)
+
+RETRYABLE_EXCEPTIONS = (ProviderError, httpx.HTTPStatusError, httpx.TimeoutException)
+
+
+class AIService:
+    """Wraps every call to ai.* with retries, timeouts, and structured logging."""
+
+    def __init__(self, timeout_seconds: float = 10.0):
+        self.timeout_seconds = timeout_seconds
+
+    @retry(
+        retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
+        wait=wait_exponential(multiplier=1, min=1, max=8),
+        stop=stop_after_attempt(3),
+        reraise=True,
+    )
+    async def fetch_wikipedia(self, query: str, max_results: int = 3, client: httpx.AsyncClient | None = None) -> list[Source]:
+        logger.info("fetching_wikipedia", extra={"query": query})
+        result = await fetch_wikipedia(query, max_results=max_results, client=client)
+        logger.info("fetched_wikipedia", extra={"query": query, "count": len(result)})
+        return result
+
+    @retry(
+        retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
+        wait=wait_exponential(multiplier=1, min=1, max=8),
+        stop=stop_after_attempt(3),
+        reraise=True,
+    )
+    async def fetch_arxiv(self, query: str, max_results: int = 3, client: httpx.AsyncClient | None = None) -> list[Source]:
+        logger.info("fetching_arxiv", extra={"query": query})
+        result = await fetch_arxiv(query, max_results=max_results, client=client)
+        logger.info("fetched_arxiv", extra={"query": query, "count": len(result)})
+        return result
+
+    @retry(
+        retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
+        wait=wait_exponential(multiplier=1, min=1, max=8),
+        stop=stop_after_attempt(3),
+        reraise=True,
+    )
+    async def fetch_web(self, query: str, max_results: int = 3, client: httpx.AsyncClient | None = None) -> list[Source]:
+        logger.info("fetching_web", extra={"query": query})
+        result = await fetch_web(query, max_results=max_results, client=client)
+        logger.info("fetched_web", extra={"query": query, "count": len(result)})
+        return result
+
+    @retry(
+        retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
+        wait=wait_exponential(multiplier=1, min=1, max=8),
+        stop=stop_after_attempt(3),
+        reraise=True,
+    )
+    def synthesize(self, question: str, sources: Sequence[Source], llm: LLMProvider | None = None) -> AnswerWithCitations:
+        logger.info("synthesizing_answer", extra={"question": question, "source_count": len(sources)})
+        result = synthesize(question=question, sources=sources, llm=llm)
+        logger.info("synthesized_answer", extra={"question": question})
+        return result
