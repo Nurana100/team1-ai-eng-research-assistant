@@ -8,15 +8,9 @@ from typing import Sequence
 
 import httpx
 
-from ai import (
-    AnswerWithCitations,
-    Source,
-    fetch_arxiv,
-    fetch_web,
-    fetch_wikipedia,
-    synthesize,
-)
+from ai import AnswerWithCitations, Source
 from ai.providers.base import LLMProvider, ProviderError
+from src.services.ai_service import AIService
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +21,14 @@ async def fetch_all_sources(
     per_source_timeout: float = 10.0,
     max_results_per_source: int = 3,
     client: httpx.AsyncClient | None = None,
+    ai_service: AIService | None = None,
 ) -> list[Source]:
     """Fetch sources concurrently with per-source timeouts and graceful degradation."""
     if not question.strip():
         return []
+
+    if ai_service is None:
+        ai_service = AIService(timeout_seconds=per_source_timeout)
 
     close_client = False
     if client is None:
@@ -42,7 +40,7 @@ async def fetch_all_sources(
         if "wiki" in sources_to_include:
             tasks.append(
                 asyncio.wait_for(
-                    fetch_wikipedia(question, max_results=max_results_per_source, client=client),
+                    ai_service.fetch_wikipedia(question, max_results=max_results_per_source, client=client),
                     timeout=per_source_timeout,
                 )
             )
@@ -50,7 +48,7 @@ async def fetch_all_sources(
         if "arxiv" in sources_to_include:
             tasks.append(
                 asyncio.wait_for(
-                    fetch_arxiv(question, max_results=max_results_per_source, client=client),
+                    ai_service.fetch_arxiv(question, max_results=max_results_per_source, client=client),
                     timeout=per_source_timeout,
                 )
             )
@@ -58,7 +56,7 @@ async def fetch_all_sources(
         if "web" in sources_to_include:
             tasks.append(
                 asyncio.wait_for(
-                    fetch_web(question, max_results=max_results_per_source, client=client),
+                    ai_service.fetch_web(question, max_results=max_results_per_source, client=client),
                     timeout=per_source_timeout,
                 )
             )
@@ -100,18 +98,21 @@ async def run_research_pipeline(
     if not cleaned_question:
         raise ValueError("Question cannot be empty.")
 
+    ai_service = AIService(timeout_seconds=per_source_timeout)
+
     sources = await fetch_all_sources(
         question=cleaned_question,
         sources_to_include=sources_to_include,
         per_source_timeout=per_source_timeout,
         client=client,
+        ai_service=ai_service,
     )
 
     if not sources:
         raise ValueError(f"Could not retrieve sources for '{cleaned_question}'.")
 
     try:
-        return synthesize(
+        return ai_service.synthesize(
             question=cleaned_question,
             sources=sources,
             llm=llm,
