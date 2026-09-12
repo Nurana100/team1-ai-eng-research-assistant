@@ -1,16 +1,24 @@
 """Shared test scaffolding for the research assistant.
 
 The suite is graded on running offline, so nothing in here may touch the
-network or read a real API key.
-"""
+network or read a real API key. Three groups of helpers live below:
 
+* stub providers - drop-in replacements for the LLM and the web-search
+  backend, both of which record what they were asked for;
+* a stub service - duck-typed twin of ``AIService`` so the orchestration in
+  ``fetch_all_sources`` can be tested on its own;
+* data factories - ready-made ``Source`` objects plus a builder for custom ones.
+
+Everything here is deliberately dumb: no sleeps unless a test asks for them,
+no state shared between tests.
+"""
 
 from __future__ import annotations
 
 import asyncio
 import sys
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, Sequence
 
 import pytest
 
@@ -18,7 +26,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from ai import Source
+from ai import AnswerWithCitations, Source, synthesize
 from ai.providers.base import LLMProvider, ProviderError
 from ai.sources import WebSearchProvider
 
@@ -109,6 +117,88 @@ class StubWebSearch(WebSearchProvider):
         return self.results[:max_results]
 
 
+class StubAIService:
+    """Stand-in for ``src.services.ai_service.AIService``.
+
+    ``fetch_all_sources`` takes the service as an argument, so injecting this
+    exercises the real orchestration - timeouts, de-duplication by URL,
+    degradation when one source dies - with no HTTP involved at all.
+
+    Break a single source with ``failures``, or slow one down past a timeout
+    with ``latencies``::
+
+        StubAIService(failures={"arxiv": ProviderError("arXiv is down")})
+        StubAIService(latencies={"wiki": 5.0})
+    """
+
+    def __init__(
+        self,
+        *,
+        wikipedia: Sequence[Source] | None = None,
+        arxiv: Sequence[Source] | None = None,
+        web: Sequence[Source] | None = None,
+        failures: dict[str, Exception] | None = None,
+        latencies: dict[str, float] | None = None,
+        llm: LLMProvider | None = None,
+        timeout_seconds: float = 10.0,
+    ) -> None:
+        self.results = {
+            "wiki": list(wikipedia) if wikipedia is not None else [_WIKI_RESULT],
+            "arxiv": list(arxiv) if arxiv is not None else [_ARXIV_RESULT],
+            "web": list(web) if web is not None else [_WEB_RESULT],
+        }
+        self.failures = failures or {}
+        self.latencies = latencies or {}
+        self.llm = llm or StubLLM()
+        self.timeout_seconds = timeout_seconds
+        self.calls: list[tuple[str, str]] = []
+
+    async def _serve(self, name: str, query: str, max_results: int) -> list[Source]:
+        self.calls.append((name, query))
+        delay = self.latencies.get(name, 0.0)
+        if delay:
+            await asyncio.sleep(delay)
+        problem = self.failures.get(name)
+        if problem is not None:
+            raise problem
+        return self.results[name][:max_results]
+
+    async def fetch_wikipedia(
+        self,
+        query: str,
+        max_results: int = 3,
+        client: Any = None,
+    ) -> list[Source]:
+        return await self._serve("wiki", query, max_results)
+
+    async def fetch_arxiv(
+        self,
+        query: str,
+        max_results: int = 3,
+        client: Any = None,
+    ) -> list[Source]:
+        return await self._serve("arxiv", query, max_results)
+
+    async def fetch_web(
+        self,
+        query: str,
+        max_results: int = 3,
+        client: Any = None,
+    ) -> list[Source]:
+        return await self._serve("web", query, max_results)
+
+    def synthesize(
+        self,
+        question: str,
+        sources: Sequence[Source],
+        llm: LLMProvider | None = None,
+    ) -> AnswerWithCitations:
+        # Delegate to the real synthesizer so citation numbering stays honest;
+        # only the model behind it is fake.
+        self.calls.append(("synthesize", question))
+        return synthesize(question=question, sources=list(sources), llm=llm or self.llm)
+
+
 _WIKI_RESULT = Source(
     title="Asynchronous I/O (Wikipedia)",
     url="https://en.wikipedia.org/wiki/Asynchronous_I/O",
@@ -184,3 +274,8 @@ def failing_llm() -> StubLLM:
 @pytest.fixture
 def stub_web_search() -> StubWebSearch:
     return StubWebSearch()
+
+
+@pytest.fixture
+def stub_ai_service(stub_llm: StubLLM) -> StubAIService:
+    return StubAIService(llm=stub_llm)
