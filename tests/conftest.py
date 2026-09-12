@@ -18,6 +18,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from ai import Source
+from ai.providers.base import LLMProvider, ProviderError
 
 CREDENTIAL_ENV_VARS = (
     "ANTHROPIC_API_KEY",
@@ -37,6 +38,43 @@ def scrub_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     for name in CREDENTIAL_ENV_VARS:
         monkeypatch.delenv(name, raising=False)
+
+
+class StubLLM(LLMProvider):
+    """LLM that answers from memory and remembers what it was asked.
+
+    ``prompts`` lets a test assert that the synthesizer really passed the
+    sources along; ``fail_with`` turns the same stub into a broken provider
+    for the retry and error paths.
+    """
+
+    DEFAULT_ANSWER = (
+        "Running the three lookups concurrently costs roughly what the "
+        "slowest single lookup costs [1], because the work is I/O bound "
+        "rather than CPU bound [2]."
+    )
+
+    def __init__(
+        self,
+        answer: str | None = None,
+        *,
+        fail_with: Exception | None = None,
+    ) -> None:
+        self.answer = answer if answer is not None else self.DEFAULT_ANSWER
+        self.fail_with = fail_with
+        self.prompts: list[str] = []
+
+    def complete(
+        self,
+        prompt: str,
+        *,
+        json_schema: dict | None = None,
+        max_tokens: int = 1024,
+    ) -> str:
+        self.prompts.append(prompt)
+        if self.fail_with is not None:
+            raise self.fail_with
+        return self.answer
 
 
 _WIKI_RESULT = Source(
@@ -99,3 +137,13 @@ def web_sources() -> list[Source]:
 def all_sources() -> list[Source]:
     """One source per origin, in the order the pipeline fans out."""
     return [_WIKI_RESULT, _ARXIV_RESULT, _WEB_RESULT]
+
+
+@pytest.fixture
+def stub_llm() -> StubLLM:
+    return StubLLM()
+
+
+@pytest.fixture
+def failing_llm() -> StubLLM:
+    return StubLLM(fail_with=ProviderError("stub provider refused the call"))
