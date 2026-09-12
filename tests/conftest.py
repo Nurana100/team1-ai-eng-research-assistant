@@ -7,9 +7,10 @@ network or read a real API key.
 
 from __future__ import annotations
 
+import asyncio
 import sys
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable, Iterable
 
 import pytest
 
@@ -19,6 +20,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from ai import Source
 from ai.providers.base import LLMProvider, ProviderError
+from ai.sources import WebSearchProvider
 
 CREDENTIAL_ENV_VARS = (
     "ANTHROPIC_API_KEY",
@@ -75,6 +77,36 @@ class StubLLM(LLMProvider):
         if self.fail_with is not None:
             raise self.fail_with
         return self.answer
+
+
+class StubWebSearch(WebSearchProvider):
+    """Web-search backend backed by a list instead of an HTTP API.
+
+    ``latency`` exists for the parallel-vs-sequential benchmark: give a source
+    a fake delay and the timing test stays deterministic and fast.
+    """
+
+    def __init__(
+        self,
+        results: Iterable[Source] | None = None,
+        *,
+        latency: float = 0.0,
+    ) -> None:
+        self.results = list(results) if results is not None else [_WEB_RESULT]
+        self.latency = latency
+        self.queries: list[str] = []
+
+    async def search(
+        self,
+        query: str,
+        *,
+        max_results: int = 3,
+        client: Any = None,
+    ) -> list[Source]:
+        self.queries.append(query)
+        if self.latency:
+            await asyncio.sleep(self.latency)
+        return self.results[:max_results]
 
 
 _WIKI_RESULT = Source(
@@ -147,3 +179,8 @@ def stub_llm() -> StubLLM:
 @pytest.fixture
 def failing_llm() -> StubLLM:
     return StubLLM(fail_with=ProviderError("stub provider refused the call"))
+
+
+@pytest.fixture
+def stub_web_search() -> StubWebSearch:
+    return StubWebSearch()
