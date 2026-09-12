@@ -20,8 +20,12 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, Iterable, Sequence
 
+import httpx
 import pytest
 
+# pytest only puts the tests/ folder on sys.path, so ``import src...`` breaks
+# when the suite is started from anywhere but the repo root. Pin the root once
+# here instead of repeating a path hack in every test module.
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -279,3 +283,23 @@ def stub_web_search() -> StubWebSearch:
 @pytest.fixture
 def stub_ai_service(stub_llm: StubLLM) -> StubAIService:
     return StubAIService(llm=stub_llm)
+
+
+@pytest.fixture
+def offline_client_factory() -> Callable[..., httpx.AsyncClient]:
+    """Hand out ``AsyncClient``s that refuse to leave the machine.
+
+    Every request raises instead of dialling out, so a test that accidentally
+    reaches the real Wikipedia fails loudly rather than depending on the CI
+    runner having internet. The test owns the client and closes it.
+    """
+
+    def _refuse(request: httpx.Request) -> httpx.Response:
+        raise RuntimeError(
+            f"network access blocked in tests: {request.method} {request.url}"
+        )
+
+    def _build(**kwargs: Any) -> httpx.AsyncClient:
+        return httpx.AsyncClient(transport=httpx.MockTransport(_refuse), **kwargs)
+
+    return _build
