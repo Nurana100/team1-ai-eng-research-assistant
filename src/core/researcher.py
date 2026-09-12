@@ -32,7 +32,14 @@ async def fetch_all_sources(
 
     close_client = False
     if client is None:
-        client = httpx.AsyncClient(timeout=per_source_timeout)
+        client = httpx.AsyncClient(
+            timeout=per_source_timeout,
+            follow_redirects=True,
+            headers={
+                "User-Agent": "team1-research-assistant/1.0 "
+                              "(AI-ENG-110 coursework; contact: your-team-email@example.com)"
+            },
+        )
         close_client = True
 
     try:
