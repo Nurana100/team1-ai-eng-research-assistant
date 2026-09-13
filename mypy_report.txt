@@ -1,0 +1,4 @@
+ai/providers/openai.py:143: error: Argument 1 to "get" of "dict" has incompatible type "str | None"; expected "str"  [arg-type]
+src/services/ai_service.py:74: error: Argument "sources" to "synthesize" has incompatible type "Sequence[Source]"; expected "list[Source]"  [arg-type]
+src/core/researcher.py:84: error: Item "BaseException" of "list[Source] | BaseException" has no attribute "__iter__" (not iterable)  [union-attr]
+Found 3 errors in 3 files (checked 5 source files)
