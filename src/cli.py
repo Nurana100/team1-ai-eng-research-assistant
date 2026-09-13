@@ -13,14 +13,34 @@ def main():
     args = parser.parse_args()
 
     if args.command == "ask":
-        sources = [x.strip() for x in args.sources.split(",") if x.strip()]
+        question = args.question.strip()
 
-        print(f"Question: {args.question}")
+        if not question:
+            print("Error: question cannot be empty.")
+            return
+
+        if len(question) > 500:
+            print(f"Error: question is too long ({len(question)} chars). Max 500 characters.")
+            return
+
+        valid_sources = {"wiki", "arxiv", "web"}
+        sources = [x.strip() for x in args.sources.split(",") if x.strip()]
+        invalid = [s for s in sources if s not in valid_sources]
+
+        if invalid:
+            print(f"Error: unknown source(s) {invalid}. Valid options: wiki, arxiv, web.")
+            return
+
+        if not sources:
+            print("Error: no valid sources specified.")
+            return
+
+        print(f"Question: {question}")
         print("Researching...")
 
         result = asyncio.run(
             run_research_pipeline(
-                question=args.question,
+                question=question,
                 sources_to_include=sources,
             )
         )
