@@ -45,6 +45,7 @@ class SQLiteStorage(StorageBackend):
 
     def __init__(self, db_path: str = "research_history.db") -> None:
         self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_schema()
 
     @contextmanager
