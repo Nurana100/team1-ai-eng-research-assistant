@@ -9,6 +9,8 @@ from __future__ import annotations
 import abc
 import json
 import sqlite3
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -45,10 +47,20 @@ class SQLiteStorage(StorageBackend):
         self.db_path = Path(db_path)
         self._init_schema()
 
-    def _connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
+        """Open a connection, commit or roll back, and always close it.
+
+        `with conn:` only ends the transaction -- it does not close the handle,
+        so the connection has to be closed explicitly or every call leaks one.
+        """
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def _init_schema(self) -> None:
         with self._connect() as conn:
