@@ -93,6 +93,8 @@ class SQLiteStorage(StorageBackend):
                 """,
                 (question, answer_text, sources_json, created_at),
             )
+            if cursor.lastrowid is None:
+                raise RuntimeError("INSERT did not return a row id")
             return cursor.lastrowid
 
     def get_query(self, query_id: int) -> dict[str, Any] | None:
