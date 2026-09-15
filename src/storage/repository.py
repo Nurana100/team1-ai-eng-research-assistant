@@ -7,6 +7,10 @@ so we can swap SQLite for Postgres later without touching calling code.
 from __future__ import annotations
 
 import abc
+import json
+import sqlite3
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 
@@ -32,3 +36,79 @@ class StorageBackend(abc.ABC):
     def list_queries(self, limit: int = 20) -> list[dict[str, Any]]:
         """List the most recent saved queries, newest first."""
         raise NotImplementedError
+
+
+class SQLiteStorage(StorageBackend):
+    """SQLite-backed implementation of StorageBackend."""
+
+    def __init__(self, db_path: str = "research_history.db") -> None:
+        self.db_path = Path(db_path)
+        self._init_schema()
+
+    def _connect(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def _init_schema(self) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS queries (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    question TEXT NOT NULL,
+                    answer_text TEXT NOT NULL,
+                    sources_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+
+    def save_query(
+        self,
+        question: str,
+        answer_text: str,
+        sources: list[dict[str, Any]],
+    ) -> int:
+        created_at = datetime.now(timezone.utc).isoformat()
+        sources_json = json.dumps(sources)
+        with self._connect() as conn:
+            cursor = conn.execute(
+                """
+                INSERT INTO queries (question, answer_text, sources_json, created_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (question, answer_text, sources_json, created_at),
+            )
+            return cursor.lastrowid
+
+    def get_query(self, query_id: int) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM queries WHERE id = ?", (query_id,)
+            ).fetchone()
+            if row is None:
+                return None
+            return {
+                "id": row["id"],
+                "question": row["question"],
+                "answer_text": row["answer_text"],
+                "sources": json.loads(row["sources_json"]),
+                "created_at": row["created_at"],
+            }
+
+    def list_queries(self, limit: int = 20) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM queries ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+            return [
+                {
+                    "id": row["id"],
+                    "question": row["question"],
+                    "answer_text": row["answer_text"],
+                    "sources": json.loads(row["sources_json"]),
+                    "created_at": row["created_at"],
+                }
+                for row in rows
+            ]
