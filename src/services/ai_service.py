@@ -49,11 +49,11 @@ class AIService:
         max_results: int = 3,
         client: httpx.AsyncClient | None = None,
     ) -> list[Source]:
-        cached = self.cache.get("wikipedia", query)
-
-        if cached is not None:
-            logger.info("cache_hit_wikipedia", extra={"query": query})
-            return cached
+        if self.use_cache:
+    	    cached = self.cache.get("wikipedia", query)
+    	    if cached is not None:
+        	logger.info("cache_hit_wikipedia", extra={"query": query})
+        	return cached
 
         logger.info("fetching_wikipedia", extra={"query": query})
         result = await fetch_wikipedia(
@@ -66,8 +66,9 @@ class AIService:
             extra={"query": query, "count": len(result)},
         )
 
-        self.cache.set("wikipedia", query, result)
-        return result
+        if self.use_cache:
+    	    self.cache.set("wikipedia", query, result)
+	return result
 
     @retry(
         retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
@@ -81,11 +82,11 @@ class AIService:
         max_results: int = 3,
         client: httpx.AsyncClient | None = None,
     ) -> list[Source]:
-        cached = self.cache.get("arxiv", query)
-
-        if cached is not None:
-            logger.info("cache_hit_arxiv", extra={"query": query})
-            return cached
+        if self.use_cache:
+    	    cached = self.cache.get("arxiv", query)
+    	    if cached is not None:
+        	logger.info("cache_hit_arxiv", extra={"query": query})
+        	return cached
 
         logger.info("fetching_arxiv", extra={"query": query})
         result = await fetch_arxiv(
@@ -98,8 +99,9 @@ class AIService:
             extra={"query": query, "count": len(result)},
         )
 
-        self.cache.set("arxiv", query, result)
-        return result
+        if self.use_cache:
+    	    self.cache.set("arxiv", query, result)
+	return result
 
     @retry(
         retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
@@ -113,11 +115,11 @@ class AIService:
         max_results: int = 3,
         client: httpx.AsyncClient | None = None,
     ) -> list[Source]:
-        cached = self.cache.get("web", query)
-
-        if cached is not None:
-            logger.info("cache_hit_web", extra={"query": query})
-            return cached
+        if self.use_cache:
+            cached = self.cache.get("web", query)
+    	    if cached is not None:
+                logger.info("cache_hit_web", extra={"query": query})
+            	return cached
 
         logger.info("fetching_web", extra={"query": query})
         result = await fetch_web(
@@ -130,8 +132,9 @@ class AIService:
             extra={"query": query, "count": len(result)},
         )
 
-        self.cache.set("web", query, result)
-        return result
+        if self.use_cache:
+    	    self.cache.set("web", query, result)
+	return result
 
     @retry(
         retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
