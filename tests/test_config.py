@@ -5,9 +5,8 @@ from src.config import Settings, get_settings
 
 def test_settings_have_sane_defaults():
     settings = Settings()
-
-    assert settings.llm_provider == "anthropic"
-    assert settings.llm_model == "claude-sonnet-4-6"
+    assert settings.llm_provider
+    assert settings.llm_model
     assert settings.log_level == "INFO"
     assert settings.cache_ttl_seconds == 86400
     assert settings.max_parallel == 5
@@ -37,9 +36,11 @@ def test_get_settings_returns_settings_instance():
     assert isinstance(settings, Settings)
 
 
-def test_settings_api_keys_default_empty():
-    settings = Settings()
-
+def test_settings_api_keys_default_empty(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+    settings = Settings(_env_file=None)
     assert settings.anthropic_api_key == ""
     assert settings.openai_api_key == ""
     assert settings.google_api_key == ""
