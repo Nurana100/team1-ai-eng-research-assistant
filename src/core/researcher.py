@@ -33,7 +33,7 @@ async def fetch_all_sources(
             timeout_seconds=per_source_timeout,
             use_cache=use_cache,
         )
-    run_research_pipeline
+
     close_client = False
     if client is None:
         client = httpx.AsyncClient(
@@ -41,7 +41,7 @@ async def fetch_all_sources(
             follow_redirects=True,
             headers={
                 "User-Agent": "team1-research-assistant/1.0 "
-                              "(AI-ENG-110 coursework; contact: your-team-email@example.com)"
+                "(AI-ENG-110 coursework; contact: your-team-email@example.com)"
             },
         )
         close_client = True
@@ -51,7 +51,11 @@ async def fetch_all_sources(
         if "wiki" in sources_to_include:
             tasks.append(
                 asyncio.wait_for(
-                    ai_service.fetch_wikipedia(question, max_results=max_results_per_source, client=client),
+                    ai_service.fetch_wikipedia(
+                        question,
+                        max_results=max_results_per_source,
+                        client=client,
+                    ),
                     timeout=per_source_timeout,
                 )
             )
@@ -59,7 +63,11 @@ async def fetch_all_sources(
         if "arxiv" in sources_to_include:
             tasks.append(
                 asyncio.wait_for(
-                    ai_service.fetch_arxiv(question, max_results=max_results_per_source, client=client),
+                    ai_service.fetch_arxiv(
+                        question,
+                        max_results=max_results_per_source,
+                        client=client,
+                    ),
                     timeout=per_source_timeout,
                 )
             )
@@ -67,7 +75,11 @@ async def fetch_all_sources(
         if "web" in sources_to_include:
             tasks.append(
                 asyncio.wait_for(
-                    ai_service.fetch_web(question, max_results=max_results_per_source, client=client),
+                    ai_service.fetch_web(
+                        question,
+                        max_results=max_results_per_source,
+                        client=client,
+                    ),
                     timeout=per_source_timeout,
                 )
             )
@@ -104,16 +116,17 @@ async def run_research_pipeline(
     llm: LLMProvider | None = None,
     client: httpx.AsyncClient | None = None,
     use_cache: bool = True,
-    ) -> AnswerWithCitations:
+) -> AnswerWithCitations:
     """Runs research query execution and returns a synthesized answer with citations."""
     cleaned_question = question.strip()
     if not cleaned_question:
         raise ValueError("Question cannot be empty.")
 
     ai_service = AIService(
-   	timeout_seconds=per_source_timeout,
-    	use_cache=use_cache,
+        timeout_seconds=per_source_timeout,
+        use_cache=use_cache,
     )
+
     sources = await fetch_all_sources(
         question=cleaned_question,
         sources_to_include=sources_to_include,

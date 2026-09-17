@@ -13,9 +13,9 @@ from tenacity import (
     wait_exponential,
 )
 
-from src.services.cache import TTLCache
 from ai import AnswerWithCitations, Source, fetch_arxiv, fetch_web, fetch_wikipedia, synthesize
 from ai.providers.base import LLMProvider, ProviderError
+from src.services.cache import TTLCache
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +33,11 @@ class AIService:
         self,
         timeout_seconds: float = 10.0,
         cache_ttl_seconds: float = 86400,
+        use_cache: bool = True,
     ):
         self.timeout_seconds = timeout_seconds
         self.cache = TTLCache(ttl_seconds=cache_ttl_seconds)
+        self.use_cache = use_cache
 
     @retry(
         retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
@@ -50,10 +52,10 @@ class AIService:
         client: httpx.AsyncClient | None = None,
     ) -> list[Source]:
         if self.use_cache:
-    	    cached = self.cache.get("wikipedia", query)
-    	    if cached is not None:
-        	logger.info("cache_hit_wikipedia", extra={"query": query})
-        	return cached
+            cached = self.cache.get("wikipedia", query)
+            if cached is not None:
+                logger.info("cache_hit_wikipedia", extra={"query": query})
+                return cached
 
         logger.info("fetching_wikipedia", extra={"query": query})
         result = await fetch_wikipedia(
@@ -67,8 +69,8 @@ class AIService:
         )
 
         if self.use_cache:
-    	    self.cache.set("wikipedia", query, result)
-	return result
+            self.cache.set("wikipedia", query, result)
+        return result
 
     @retry(
         retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
@@ -83,10 +85,10 @@ class AIService:
         client: httpx.AsyncClient | None = None,
     ) -> list[Source]:
         if self.use_cache:
-    	    cached = self.cache.get("arxiv", query)
-    	    if cached is not None:
-        	logger.info("cache_hit_arxiv", extra={"query": query})
-        	return cached
+            cached = self.cache.get("arxiv", query)
+            if cached is not None:
+                logger.info("cache_hit_arxiv", extra={"query": query})
+                return cached
 
         logger.info("fetching_arxiv", extra={"query": query})
         result = await fetch_arxiv(
@@ -100,8 +102,8 @@ class AIService:
         )
 
         if self.use_cache:
-    	    self.cache.set("arxiv", query, result)
-	return result
+            self.cache.set("arxiv", query, result)
+        return result
 
     @retry(
         retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
@@ -117,9 +119,9 @@ class AIService:
     ) -> list[Source]:
         if self.use_cache:
             cached = self.cache.get("web", query)
-    	    if cached is not None:
+            if cached is not None:
                 logger.info("cache_hit_web", extra={"query": query})
-            	return cached
+                return cached
 
         logger.info("fetching_web", extra={"query": query})
         result = await fetch_web(
@@ -133,8 +135,8 @@ class AIService:
         )
 
         if self.use_cache:
-    	    self.cache.set("web", query, result)
-	return result
+            self.cache.set("web", query, result)
+        return result
 
     @retry(
         retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
