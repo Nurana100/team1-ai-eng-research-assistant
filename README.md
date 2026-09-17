@@ -1,96 +1,149 @@
-# AI Engineering — Software Engineering Final Project (v2)
+\# AI Research Assistant
 
-**AI Academy, National AI Center · Spring 2026**
+> An async research assistant that queries Wikipedia, arXiv, and web search concurrently, then synthesizes a single cited answer using an LLM.
 
-This is the distributable package for the Software Engineering final project. It contains everything students need: the project brief, the topic codebases (with their provided AI modules), report and slide templates, and documentation.
-
-**Released:** May 11, 2026
-**Due:** **May 23, 2026 at 23:59 (UTC+4)**
+**Team:** Team1  •  **Topic:** 4 — Async Research Assistant  •  **Course:** AI-ENG-110 Software Engineering, AI Academy
 
 ---
 
-## What to read first
-
-1. **`SOFTWARE_PROJECT.pdf`** — the authoritative project description, requirements, rubric, deadlines. Start here.
-2. **`docs/TIMELINE.md`** — recommended 12-day milestone schedule.
-3. Your chosen topic's **`TOPIC.md`** — what the provided AI module does and what you build around it.
-4. **`docs/COMMON_PITFALLS.md`** — every mistake previous students have made. Read before Day 9.
-
-## What's where
-
-```
-AIENG_FinalProject_v2/
-│
-├── SOFTWARE_PROJECT.pdf         ← the project description (start here; authoritative)
-├── SOFTWARE_PROJECT.tex         ← LaTeX source for the brief
-├── README.md                    ← this file
-│
-├── templates/                   ← templates you fill in for submission
-│   ├── REPORT_TEMPLATE.tex      → produces report/report.pdf
-│   ├── REPORT_TEMPLATE.pdf      ← compiled preview
-│   ├── SLIDES_TEMPLATE.tex      → produces your defense slides (Beamer)
-│   ├── SLIDES_TEMPLATE.pdf      ← compiled preview
-│   ├── CONTRIBUTION_STATEMENT.md
-│   ├── STUDENT_README_TEMPLATE.md   ← model README for your repo
-│   ├── Dockerfile.template      ← starting-point Dockerfile
-│   └── pull_request_template.md ← put at .github/ in your repo
-│
-├── docs/                        ← guidance, not graded directly but read carefully
-│   ├── TIMELINE.md              ← 12-day milestone schedule
-│   ├── GIT_WORKFLOW.md          ← branch model, PR process, tagging
-│   ├── COMMON_PITFALLS.md       ← what previous teams got wrong
-│   └── ADVANCED_BONUSES.md      ← +10 bonus points for strong teams
-│
-├── topic-1-lost-and-found/      ← AI module + sample data + smoke tests
-├── topic-2-food-analyzer/       ← (pick exactly ONE of the four topics)
-├── topic-3-news-briefing/
-└── topic-4-research-assistant/
-```
-
-## What you receive
-
-For each of the four topics, the course provides a runnable, provider-agnostic `ai/` Python package (talks to Claude / GPT-4o / Gemini), sample data, a `demo_ai.py` that exercises it end-to-end, and offline smoke tests. **You do not build the AI side.** You build the software-engineering wrapping around it: config, storage, concurrency, retries, validation, logging, CLI, HTTP API (where required), testing, Docker, README, and the final report.
-
-## What you submit on May 23
-
-The authoritative brief says the headline submission is **one ZIP archive** due before **May 23, 2026 at 23:59 (UTC+4)** containing:
-
-1. **Source code**.
-2. **Compiled report** (`report/report.pdf`) using `templates/REPORT_TEMPLATE.tex`.
-3. **Presentation deck** for the oral defense, using `templates/SLIDES_TEMPLATE.tex`.
-
-Per `SOFTWARE_PROJECT.pdf` §7 and §10, the report/email must also include the GitHub repository URL and final tag `v1.0-final`; the signed contribution statement is submitted with the final package.
-
-## Verify the provided AI module works
-
-Before you write a single line of SE code, every team member should be able to run:
+## Quick start
 
 ```bash
-cd topic-N-<name>/
-python data/_make_samples.py            # if the topic uses generated samples
-python demo_ai.py --offline             # runs end-to-end without API keys
-pytest tests/test_ai_smoke.py -v        # provided contract tests, must pass
+# 1. Clone & install
+git clone https://github.com/Nurana100/team1-ai-eng-research-assistant
+cd team1-ai-eng-research-assistant
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# 2. Configure
+cp topic-4-research-assistant/.env.example topic-4-research-assistant/.env
+# then fill in a real API key (see Environment variables below)
+# DO NOT commit .env — it is in .gitignore
+
+# 3. Run the provided smoke tests
+pytest topic-4-research-assistant/tests/test_ai_smoke.py -v
+
+# 4. Run the full test suite
+pytest --cov=src --cov-report=term-missing
+
+# 5. Run the demo
+python -m src.cli ask "what is quantum computing"
 ```
 
-If any of these fail on your machine, fix the environment before continuing.
+## Run with Docker
 
-## Quick rules
+```bash
+docker build -t research-assistant .
+docker run --rm --env-file topic-4-research-assistant/.env research-assistant
+```
 
-- **Do not** edit any file under `ai/`. The smoke tests are a contract; they must keep passing.
-- **Do not** commit real API keys. Use `.env`; `.env` is in `.gitignore`; `.env.example` lists keys with empty values.
-- **Do not** modify the public interface of the AI module — automatic deduction.
-- **Do** read the **`SOFTWARE_PROJECT.pdf`** end-to-end before the kickoff meeting. The rubric is non-negotiable.
-- **Do** use the timeline in `docs/TIMELINE.md` to plan.
-- **Do** disclose AI-assistant use (Cursor / Claude / Copilot / etc.) in the report.
+This runs the 5-question demo (`scripts/run_demo.py`) end-to-end, printing a cited answer for each question. The container runs as a non-root user and never bakes `.env` into the image — keys are supplied only at `docker run` time.
 
-## Grading summary
+## Environment variables
 
-100 points: **Code 60% · Report 25% · Presentation 15%.** Up to **+10 bonus points** for advanced features (`docs/ADVANCED_BONUSES.md`). Automatic deductions for hard-coded keys, broken Docker, network-dependent tests, severe commit imbalance, and modifying `ai/`.
+| Variable | Required? | Default | What it controls |
+|---|---|---|---|
+| `LLM_PROVIDER` | yes | `anthropic` | `anthropic` \| `openai` \| `gemini` |
+| `LLM_MODEL` | yes | (provider-specific) | model id, e.g. `gemini-3.6-flash` |
+| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GOOGLE_API_KEY` | one of, yes | — | key for the chosen provider |
+| `WEB_SEARCH_PROVIDER` | no | `tavily` | `tavily` \| `serper` \| `duckduckgo` |
+| `TAVILY_API_KEY` / `SERPER_API_KEY` | one of, if using that provider | — | web search provider key |
+| `LOG_LEVEL` | no | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+| `CACHE_TTL_SECONDS` | no | `86400` | how long fetched sources are cached |
+| `MAX_PARALLEL` | no | `5` | semaphore bound for concurrent source fetches |
 
-Full rubric in **`SOFTWARE_PROJECT.pdf`** §8.
+The full list with defaults is in `topic-4-research-assistant/.env.example`. **Do not commit a real `.env`.**
 
----
+**Recommended free-tier setup** (no billing required): `LLM_PROVIDER=gemini` with a free key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey), and `WEB_SEARCH_PROVIDER=duckduckgo` (no key needed, requires `pip install duckduckgo-search`).
 
-**Questions?** Open an issue against the course-wide repo or email the instructor. Do not delay on a blocker.
+## How to run the demo
 
-Good luck. Build something you would actually ship.
+```bash
+# Ask a single question
+python -m src.cli ask "how do transformer models handle long context windows?"
+
+# Restrict to specific sources
+python -m src.cli ask "explain CRISPR-Cas9" --sources wiki,arxiv
+
+# Bypass the cache
+python -m src.cli ask "current state of fusion energy" --no-cache
+
+# Run all 5 required demo questions end-to-end
+python scripts/run_demo.py
+```
+
+Example output:
+Answer:
+Quantum computing exploits phenomena such as superposition, interference,
+and entanglement to process information [1]. Large-scale quantum computers
+could break widely used encryption schemes [1] ...
+Sources:
+[1] Quantum computing
+https://en.wikipedia.org/wiki/Quantum_computing
+[2] Quantum computing scaling laws
+https://en.wikipedia.org/wiki/Quantum_computing_scaling_laws
+
+## Testing
+
+```bash
+pytest --cov=src --cov-report=term-missing
+```
+
+- Total coverage: **65%** (target: ≥60%)
+- Provided AI smoke tests: **passing** (16/16)
+- All 49 tests run fully offline — the AI module and all HTTP calls are mocked via `StubAIService`, `StubLLM`, `StubWebSearch`, and an offline `httpx` client factory that refuses real network calls (see `tests/conftest.py`).
+- `src/cli.py` shows 0% in the coverage report by design: its tests run the CLI as a subprocess to exercise real end-user behavior, which `pytest-cov` does not track across process boundaries. The CLI's actual logic (argument parsing, validation) is covered by 4 passing subprocess tests.
+
+## Project layout
+.
+├── ai/ # PROVIDED — do not modify
+│ ├── sources.py # fetch_wikipedia, fetch_arxiv, fetch_web
+│ ├── synthesizer.py # synthesize()
+│ └── providers/ # LLMProvider ABC: Anthropic, OpenAI, Gemini
+├── src/
+│ ├── config.py # typed settings from .env (pydantic-settings)
+│ ├── cli.py # CLI entry point, input validation
+│ ├── core/
+│ │ └── researcher.py # orchestration: concurrency, graceful degradation
+│ ├── services/
+│ │ ├── ai_service.py # wraps ai/* with retries, timeouts, logging, caching
+│ │ ├── cache.py # TTLCache
+│ │ └── rate_limiter.py # per-source RateLimiter
+│ └── storage/
+│ └── repository.py # StorageBackend (ABC) + SQLiteStorage
+├── tests/ # 49 tests, fully offline
+├── data/ # sample research questions
+├── scripts/
+│ └── run_demo.py # runs all 5 required demo questions
+├── docs/
+│ └── architecture.md # module map and design rationale
+├── topic-4-research-assistant/ # course-provided folder (ai/, data/, smoke tests, .env.example)
+├── Dockerfile
+├── .dockerignore
+├── requirements.txt
+├── mypy_report.txt
+└── README.md
+
+## Architecture
+
+See `docs/architecture.md` for the full module map and design rationale, including:
+- Why `AIService` is the single seam for retries/timeouts/logging/caching/rate-limiting around the provided `ai/` package
+- How switching LLM providers (we run on Gemini by default) costs one `.env` line, not a code change
+- The `StorageBackend` abstract base class as our own inheritance/composition example, separate from `ai/`'s own `LLMProvider` pattern
+
+## Limitations
+
+- **Wikipedia's opensearch endpoint is sensitive to query phrasing.** Full natural-language questions (e.g. "what is quantum computing") sometimes return zero matches even when a keyword-style query ("quantum computing") succeeds. Confirmed during development; a production system might strip leading question words before querying.
+- **No multi-provider failover.** If the configured LLM provider is down or the account has no credit, the pipeline returns a clear error rather than automatically trying a second provider.
+- **DuckDuckGo web search can rate-limit or return empty results** without warning when queried repeatedly in a short window; this was observed during testing and is a known constraint of the free, keyless search backend.
+- **SQLite storage is single-writer**, chosen for simplicity within course scope; a production deployment would need Postgres for concurrent writers.
+
+See `report/report.pdf` for a full discussion, including the required failure-mode analysis.
+
+## Tools & acknowledgements
+
+We used Claude (Anthropic) as an AI coding assistant throughout development — for debugging import/path issues, writing test scaffolding, wiring the retry/caching/storage layers, and drafting this README. All code was reviewed and is understood by the team; every PR went through review before merging. Full disclosure is in `report/report.pdf` §9 and `templates/CONTRIBUTION_STATEMENT.md`.
+
+## License
+
+This is academic coursework for AI-ENG-110, AI Academy, not a published library.
