@@ -22,14 +22,18 @@ async def fetch_all_sources(
     max_results_per_source: int = 3,
     client: httpx.AsyncClient | None = None,
     ai_service: AIService | None = None,
+    use_cache: bool = True,
 ) -> list[Source]:
     """Fetch sources concurrently with per-source timeouts and graceful degradation."""
     if not question.strip():
         return []
 
     if ai_service is None:
-        ai_service = AIService(timeout_seconds=per_source_timeout)
-
+        ai_service = AIService(
+            timeout_seconds=per_source_timeout,
+            use_cache=use_cache,
+        )
+    run_research_pipeline
     close_client = False
     if client is None:
         client = httpx.AsyncClient(
@@ -99,20 +103,24 @@ async def run_research_pipeline(
     per_source_timeout: float = 10.0,
     llm: LLMProvider | None = None,
     client: httpx.AsyncClient | None = None,
-) -> AnswerWithCitations:
+    use_cache: bool = True,
+    ) -> AnswerWithCitations:
     """Runs research query execution and returns a synthesized answer with citations."""
     cleaned_question = question.strip()
     if not cleaned_question:
         raise ValueError("Question cannot be empty.")
 
-    ai_service = AIService(timeout_seconds=per_source_timeout)
-
+    ai_service = AIService(
+   	timeout_seconds=per_source_timeout,
+    	use_cache=use_cache,
+    )
     sources = await fetch_all_sources(
         question=cleaned_question,
         sources_to_include=sources_to_include,
         per_source_timeout=per_source_timeout,
         client=client,
         ai_service=ai_service,
+        use_cache=use_cache,
     )
 
     if not sources:
