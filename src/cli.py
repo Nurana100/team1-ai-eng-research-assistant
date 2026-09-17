@@ -42,6 +42,7 @@ def main():
             run_research_pipeline(
                 question=question,
                 sources_to_include=sources,
+                use_cache=not args.no_cache,
             )
         )
 
