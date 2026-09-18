@@ -11,6 +11,7 @@ import httpx
 from ai import AnswerWithCitations, Source
 from ai.providers.base import LLMProvider, ProviderError
 from src.services.ai_service import AIService
+from src.storage.repository import SQLiteStorage
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +105,7 @@ async def run_research_pipeline(
     llm: LLMProvider | None = None,
     client: httpx.AsyncClient | None = None,
     use_cache: bool = True,
+    storage: SQLiteStorage | None = None,
     ) -> AnswerWithCitations:
     """Runs research query execution and returns a synthesized answer with citations."""
     cleaned_question = question.strip()
@@ -127,10 +129,19 @@ async def run_research_pipeline(
         raise ValueError(f"Could not retrieve sources for '{cleaned_question}'.")
 
     try:
-        return ai_service.synthesize(
+        result = ai_service.synthesize(
             question=cleaned_question,
             sources=sources,
             llm=llm,
         )
     except Exception as e:
         raise ProviderError(f"LLM synthesis error: {e}") from e
+
+    if storage is not None:
+        storage.save_query(
+            question=cleaned_question,
+            answer_text=result.answer,
+            sources=[source.model_dump() for source in sources],
+        )
+
+    return result
