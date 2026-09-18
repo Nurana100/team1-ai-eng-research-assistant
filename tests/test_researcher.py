@@ -68,3 +68,29 @@ async def test_concurrent_fetch_uses_all_three_sources():
     await fetch_all_sources("concurrency test", ai_service=stub)
     called_sources = {name for name, _ in stub.calls}
     assert called_sources == {"wiki", "arxiv", "web"}
+
+@pytest.mark.asyncio
+async def test_run_research_pipeline_saves_to_storage(
+    stub_llm, tmp_path, monkeypatch
+):
+    from src.core import researcher
+    from src.storage.repository import SQLiteStorage
+
+    storage = SQLiteStorage(str(tmp_path / "test_history.db"))
+    stub = StubAIService(llm=stub_llm)
+
+    monkeypatch.setattr(researcher, "AIService", lambda **kwargs: stub)
+
+    result = await run_research_pipeline(
+        question="  test question  ",
+        llm=stub_llm,
+        storage=storage,
+    )
+
+    saved = storage.list_queries()
+    assert len(saved) == 1
+    assert saved[0]["question"] == "test question"
+
+    record = storage.get_query(saved[0]["id"])
+    assert record is not None
+    assert record["answer_text"] == result.answer

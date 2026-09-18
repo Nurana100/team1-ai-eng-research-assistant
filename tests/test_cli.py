@@ -54,7 +54,7 @@ def test_cli_passes_no_cache_option():
         },
     )()
 
-    with patch("src.cli.asyncio.run", return_value=mock_result) as mock_run:
+    with patch("src.cli.asyncio.run", side_effect=lambda coro: (coro.close(), mock_result)[1]) as mock_run:
         with patch("src.cli.run_research_pipeline") as mock_pipeline:
             mock_pipeline.return_value = mock_result
 
@@ -65,8 +65,9 @@ def test_cli_passes_no_cache_option():
             ):
                 cli.main()
 
-    mock_pipeline.assert_called_once_with(
-        question="test question",
-        sources_to_include=["wiki", "arxiv", "web"],
-        use_cache=False,
-    )
+    mock_pipeline.assert_called_once()
+    kwargs = mock_pipeline.call_args.kwargs
+    assert kwargs["question"] == "test question"
+    assert kwargs["sources_to_include"] == ["wiki", "arxiv", "web"]
+    assert kwargs["use_cache"] is False
+    assert kwargs["storage"] is not None
