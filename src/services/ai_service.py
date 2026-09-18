@@ -33,9 +33,11 @@ class AIService:
         self,
         timeout_seconds: float = 10.0,
         cache_ttl_seconds: float = 86400,
+        use_cache: bool = True,
     ):
         self.timeout_seconds = timeout_seconds
         self.cache = TTLCache(ttl_seconds=cache_ttl_seconds)
+        self.use_cache = use_cache
 
     @retry(
         retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
