@@ -2,6 +2,9 @@
 
 import subprocess
 import sys
+from unittest.mock import patch
+
+from src import cli
 
 
 def run_cli(*args):
@@ -39,3 +42,32 @@ def test_cli_rejects_empty_sources_list():
     result = run_cli("--sources", ",", "test question")
 
     assert "no valid sources" in result.stdout.lower()
+
+
+def test_cli_passes_no_cache_option():
+    mock_result = type(
+        "Result",
+        (),
+        {
+            "answer": "test answer",
+            "citations": [],
+        },
+    )()
+
+    with patch("src.cli.asyncio.run", side_effect=lambda coro: (coro.close(), mock_result)[1]) as mock_run:
+        with patch("src.cli.run_research_pipeline") as mock_pipeline:
+            mock_pipeline.return_value = mock_result
+
+            with patch.object(
+                sys,
+                "argv",
+                ["researcher", "ask", "test question", "--no-cache"],
+            ):
+                cli.main()
+
+    mock_pipeline.assert_called_once()
+    kwargs = mock_pipeline.call_args.kwargs
+    assert kwargs["question"] == "test question"
+    assert kwargs["sources_to_include"] == ["wiki", "arxiv", "web"]
+    assert kwargs["use_cache"] is False
+    assert kwargs["storage"] is not None

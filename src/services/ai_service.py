@@ -13,9 +13,9 @@ from tenacity import (
     wait_exponential,
 )
 
-from src.services.cache import TTLCache
 from ai import AnswerWithCitations, Source, fetch_arxiv, fetch_web, fetch_wikipedia, synthesize
 from ai.providers.base import LLMProvider, ProviderError
+from src.services.cache import TTLCache
 
 logger = logging.getLogger(__name__)
 

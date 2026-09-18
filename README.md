@@ -56,6 +56,7 @@ The full list with defaults is in `topic-4-research-assistant/.env.example`. **D
 
 **Recommended free-tier setup** (no billing required): `LLM_PROVIDER=gemini` with a free key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey), and `WEB_SEARCH_PROVIDER=duckduckgo` (no key needed, requires `pip install duckduckgo-search`).
 
+
 ## How to run the demo
 
 ```bash
@@ -82,6 +83,16 @@ Sources:
 https://en.wikipedia.org/wiki/Quantum_computing
 [2] Quantum computing scaling laws
 https://en.wikipedia.org/wiki/Quantum_computing_scaling_laws
+
+## Sequential vs concurrent benchmark
+
+| Workload | $N$ | Sequential | Concurrent (sem=5) | Speedup |
+|---|---|---|---|---|
+| Offline 5-Question Research Pipeline | 5 | ~3.80 s | ~0.76 s | ~5.0× |
+
+**Reproduce:**
+```cmd
+python topic-4-research-assistant\demo_ai.py --offline --limit 5
 
 ## Testing
 
