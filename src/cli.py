@@ -2,6 +2,7 @@ import argparse
 import asyncio
 
 from src.core.researcher import run_research_pipeline
+from src.storage.repository import SQLiteStorage
 
 
 def main():
@@ -38,11 +39,13 @@ def main():
         print(f"Question: {question}")
         print("Researching...")
 
+        storage = SQLiteStorage("research_history.db")
         result = asyncio.run(
             run_research_pipeline(
                 question=question,
                 sources_to_include=sources,
                 use_cache=not args.no_cache,
+                storage=storage,
             )
         )
 
