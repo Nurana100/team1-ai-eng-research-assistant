@@ -172,7 +172,7 @@ See `report/report.pdf` for a full discussion, including the required failure-mo
 
 ## Tools & acknowledgements
 
-We used Claude (Anthropic) as an AI coding assistant throughout development — for debugging import/path issues, writing test scaffolding, wiring the retry/caching/storage layers, and drafting this README. All code was reviewed and is understood by the team; every PR went through review before merging. Full disclosure is in `report/report.pdf` §9 and `templates/CONTRIBUTION_STATEMENT.md`.
+We used Claude (Anthropic) as an AI coding assistant throughout development — for debugging import/path issues, writing test scaffolding, wiring the retry/caching/storage layers, and drafting this README. All code was reviewed and is understood by the team; every PR went through review before merging. Full disclosure is in `templates/report.pdf` §9 and `templates/CONTRIBUTION_STATEMENT.pdf`.
 
 ## License
 
