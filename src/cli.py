@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv("topic-4-research-assistant/.env")
+
 import argparse
 import asyncio
 
