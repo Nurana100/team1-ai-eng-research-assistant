@@ -1,5 +1,7 @@
-from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+load_dotenv("topic-4-research-assistant/.env")
 
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     llm_provider: str = "anthropic"
