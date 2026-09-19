@@ -1,0 +1,10 @@
+run 1: sequential=1.29s parallel=0.71s  [wikipedia=0.46s, arxiv=0.45s, web=0.38s]
+run 2: sequential=1.12s parallel=0.34s  [wikipedia=0.44s, arxiv=0.38s, web=0.30s]
+run 3: sequential=1.16s parallel=0.65s  [wikipedia=0.44s, arxiv=0.36s, web=0.35s]
+
+Query: 'Quantum Entanglement', runs: 3, cache: off
+| Mode       | Mean wall-clock (s) |
+|------------|---------------------|
+| Sequential | 1.19                |
+| Parallel   | 0.57                |
+Speedup: 2.10x
