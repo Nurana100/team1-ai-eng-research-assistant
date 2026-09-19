@@ -1,9 +1,13 @@
 from dotenv import load_dotenv
+
+load_dotenv()
 load_dotenv("topic-4-research-assistant/.env")
 
 import argparse
 import asyncio
+import sys
 
+from ai.providers.base import ProviderError
 from src.core.researcher import run_research_pipeline
 from src.storage.repository import SQLiteStorage
 
@@ -43,14 +47,18 @@ def main():
         print("Researching...")
 
         storage = SQLiteStorage("research_history.db")
-        result = asyncio.run(
-            run_research_pipeline(
-                question=question,
-                sources_to_include=sources,
-                use_cache=not args.no_cache,
-                storage=storage,
+        try:
+            result = asyncio.run(
+                run_research_pipeline(
+                    question=question,
+                    sources_to_include=sources,
+                    use_cache=not args.no_cache,
+                    storage=storage,
+                )
             )
-        )
+        except (ValueError, ProviderError) as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
 
         print("\nAnswer:")
         print(result.answer)
