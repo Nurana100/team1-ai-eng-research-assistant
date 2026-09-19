@@ -1,9 +1,3 @@
-"""Simple in-memory TTL cache for AI service calls.
-
-Keyed by (source_name, query) so re-asking the same question doesn't hit
-Wikipedia/arXiv/web search again within the TTL window.
-"""
-
 from __future__ import annotations
 
 import time
@@ -11,11 +5,6 @@ from typing import Any
 
 
 class TTLCache:
-    """A minimal time-to-live cache. Not thread-safe by design — this
-    project is asyncio-based (single-threaded event loop), so a lock isn't
-    needed for our use case.
-    """
-
     def __init__(self, ttl_seconds: float = 86400) -> None:
         self.ttl_seconds = ttl_seconds
         self._store: dict[str, tuple[float, Any]] = {}

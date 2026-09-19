@@ -1,5 +1,3 @@
-"""Core pipeline logic for Topic 4 — Async Research Assistant."""
-
 from __future__ import annotations
 
 import asyncio
@@ -25,7 +23,6 @@ async def fetch_all_sources(
     ai_service: AIService | None = None,
     use_cache: bool = True,
 ) -> list[Source]:
-    """Fetch sources concurrently with per-source timeouts and graceful degradation."""
     if not question.strip():
         return []
 
@@ -119,7 +116,6 @@ async def run_research_pipeline(
     use_cache: bool = True,
     storage: SQLiteStorage | None = None,
     ) -> AnswerWithCitations:
-    """Runs research query execution and returns a synthesized answer with citations."""
     cleaned_question = question.strip()
     if not cleaned_question:
         raise ValueError("Question cannot be empty.")

@@ -1,0 +1,65 @@
+================================================================================
+q1: What is photosynthesis and what are its main stages?
+================================================================================
+
+Answer:
+Photosynthesis is a system of biological processes in which photopigment-bearing autotrophic organisms—such as plants, algae, and cyanobacteria—convert light energy into chemical energy to fuel their metabolism [1]. The term usually refers to oxygenic photosynthesis, which splits water and releases oxygen as a byproduct, following the simplified chemical reaction 6 H2O + 6 CO2 + energy → C6H12O6 + 6 O2 [1, 2]. Organisms store this converted chemical energy within the bonds of intracellular organic compounds, typically carbohydrates like sugars, starches, phytoglycogen, and cellulose [1]. Additionally, electronic scientific instruments called photosynthesis systems allow researchers to non-destructively measure photosynthetic rates in the field [3].
+
+Sources:
+[1] Photosynthesis
+    https://en.wikipedia.org/wiki/Photosynthesis
+[2] Photosynthetic efficiency
+    https://en.wikipedia.org/wiki/Photosynthetic_efficiency
+[3] Photosynthesis system
+    https://en.wikipedia.org/wiki/Photosynthesis_system
+
+================================================================================
+q2: How do transformer-based language models handle long context windows?
+================================================================================
+
+Answer:
+In deep learning, a transformer is a family of artificial neural network architectures based on the multi-head attention mechanism [1]. To process input data such as text, images, or audio, the system converts the data into a sequence of numerical representations known as tokens [1]. Each token is then converted into a vector using a lookup from a word embedding table [1]. At each layer, a parallel multi-head attention mechanism contextualizes each token with other unmasked tokens within the context window [1]. This allows the network to amplify the signals of key tokens while diminishing less important ones [1].
+
+Sources:
+[1] Transformer (deep learning)
+    https://en.wikipedia.org/wiki/Transformer_(deep_learning)
+
+================================================================================
+q3: What were the main causes of the 2008 financial crisis?
+================================================================================
+
+Answer:
+The 2008 financial crisis was a major worldwide financial crisis centered in the United States [1]. It was caused by excessive speculation on property values leading to the U.S. housing bubble, predatory lending for subprime mortgages, and deficiencies in regulation [1]. Austrian school economists also attributed the crisis to the Federal Reserve's prolonged policy of artificially low interest rates, which generated a credit bubble, moral hazard, and widespread malinvestment [1]. Additionally, Iceland experienced a major financial crisis between 2008 and 2010 involving the default of all three of its major commercial banks [2]. Relative to the size of its economy, Iceland's systemic collapse was the largest in economic history and resulted in a severe recession [2].
+
+Sources:
+[1] 2008 financial crisis
+    https://en.wikipedia.org/wiki/2008_financial_crisis
+[2] 2008–2011 Icelandic financial crisis
+    https://en.wikipedia.org/wiki/2008%E2%80%932011_Icelandic_financial_crisis
+
+================================================================================
+q4: What is the current state of fusion energy research?
+================================================================================
+
+Answer:
+Fusion power is a potential method of generating electricity from heat released by nuclear fusion, a process where two light atomic nuclei combine to form a heavier nucleus inside devices known as fusion reactors [1]. The performance of a reactor is measured by the fusion energy gain factor ($Q$), which is the ratio of fusion power produced to the power required to maintain the plasma [2]. Reaching $Q = 1$ is referred to as breakeven or scientific breakeven, occurring when the released fusion power equals the required heating power [2]. Historically, public support and research for this technology were promoted by organizations such as the Fusion Energy Foundation, an American non-profit think tank established in 1974 [3].
+
+Sources:
+[1] Fusion power
+    https://en.wikipedia.org/wiki/Fusion_power
+[2] Fusion energy gain factor
+    https://en.wikipedia.org/wiki/Fusion_energy_gain_factor
+[3] Fusion Energy Foundation
+    https://en.wikipedia.org/wiki/Fusion_Energy_Foundation
+
+================================================================================
+q5: How does CRISPR-Cas9 gene editing work at a molecular level?
+================================================================================
+
+Answer:
+CRISPR gene editing is a genetic engineering technique used in molecular biology to modify the genomes of living organisms [1]. The method is based on a simplified version of the bacterial CRISPR-Cas9 antiviral defense system [1]. It functions by delivering the Cas9 nuclease complexed with a synthetic guide RNA (gRNA) into a cell [1]. This enables the cell's genome to be cut at a specific, desired location [1]. Once cut, existing genes can be removed or new genes can be added *in vivo* [1].
+
+Sources:
+[1] CRISPR gene editing
+    https://en.wikipedia.org/wiki/CRISPR_gene_editing
+

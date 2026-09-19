@@ -1,5 +1,3 @@
-"""Service layer wrapping the provided ai/ module with retries, timeouts, and logging."""
-
 from __future__ import annotations
 
 import logging
@@ -27,8 +25,6 @@ RETRYABLE_EXCEPTIONS = (
 
 
 class AIService:
-    """Wraps every call to ai.* with retries, timeouts, and structured logging."""
-
     def __init__(
         self,
         timeout_seconds: float = 10.0,
